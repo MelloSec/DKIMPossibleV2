@@ -6,20 +6,20 @@ param(
     [string]$DOMAINSUFFIX,
 
     [Parameter(ValueFromPipelineByPropertyName = $true)]
-    [string]$VMNAME,
+    [string]$DEFAULTTENANTSUBDOMAIN,
 
     [Parameter(ValueFromPipelineByPropertyName = $true)]
-    [string]$AZREGION
+    [string]$MSVERIFICATION
 )
 
 # Check and create .\Deploy directory if it doesn't exist
-$deployPath = ".\Deploy"
+$deployPath = "..\Deploy"
 if (-not (Test-Path -Path $deployPath)) {
     New-Item -ItemType Directory -Path $deployPath
 }
 
 # Copy main.tf template to .\Deploy
-$templatePath = ".\templates\main.tf"
+$templatePath = "..\templates\main.tf"
 $deployFilePath = Join-Path $deployPath "main.tf"
 Copy-Item -Path $templatePath -Destination $deployFilePath -Force
 
@@ -37,8 +37,8 @@ function Replace-PlaceholderInFile {
 
 Write-Output "Value of domainname is:"  "$DOMAINNAME" 
 Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "DOMAINNAME" -value $DOMAINNAME 
-Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "VMNAME" -value $VMNAME 
-Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "AZREGION" -value $AZREGION 
+Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "DEFAULTTENANTSUBDOMAIN" -value $DEFAULTTENANTSUBDOMAIN 
+Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "MSVERIFICATION" -value $MSVERIFICATION
 Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "DOMAINSUFFIX" -value $DOMAINSUFFIX
 
 

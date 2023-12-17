@@ -28,16 +28,15 @@ param(
     [string]$DEFAULTTENANTSUBDOMAIN,
 
     [Parameter(ValueFromPipelineByPropertyName = $true)]
+    [string]$DOMAIN,
+
+    [Parameter(ValueFromPipelineByPropertyName = $true)]
     [switch]$genKeyVault,
 
     [Parameter(ValueFromPipelineByPropertyName = $true)]
     [bool]$s3enabled = $true
 
 )
-
-
-
-
 
 function Run-ScriptWithParams {
     param($ScriptPath, $Params)
@@ -74,18 +73,37 @@ if ($s3enabled)
 
 Set-Location -Path $deployPath
 
-# Install Modules
-if(!(Get-Module MSOnline)){Install-Module -Name MSOnline -Confirm:$false -Force
-    Import-Module MSOnline}
-    
-    
-    if(!(Get-Module ExchangeOnlineManagement)){ Install-Module -Name ExchangeOnlineManagement -Confirm:$false -Force }
-    Import-Module ExchangeOnlineManagement
-    
-    # Connect to MSOL and Exchange Online
-    Connect-MsolService
-    Connect-ExchangeOnline 
+# # Install Modules
+if(!(Get-Module MSOnline)){Install-Module -Name MSOnline -Confirm:$false -Force }
+# Check if MSOnline module is loaded, import it if not
+if (!(Get-Module -Name MSOnline)) {
+    Import-Module MSOnline
+}
 
+if(!(Get-Module ExchangeOnlineManagement)){ Install-Module -Name ExchangeOnlineManagement -Confirm:$false -Force }
+# Check if ExchangeOnlineManagement module is loaded, import it if not
+if (!(Get-Module -Name ExchangeOnlineManagement)) {
+    Import-Module ExchangeOnlineManagement
+}
+        
+# Ask the user if they want to connect to MSOL and Exchange Online
+$userChoice = Read-Host "Do you want to connect to MSOL and Exchange Online? (Y/N)"
+
+if ($userChoice -eq "y" -or $userChoice -eq "Y") {
+    # Connect to MSOL
+    Write-Output "Connecting to MSOL"
+    Connect-MsolService
+
+    # Connect to Exchange Online
+    Write-Output "Connecting to Exchange Online"
+    Connect-ExchangeOnline 
+} else {
+    # User chose not to connect
+    Write-Output "Skipping connection steps to O365, assumes you're already signed in."
+}
+
+
+    
     # Create the new domain
     function Create-Domain($domain){
         if(!(Get-MsolDomain -domainname $domain -ErrorAction SilentlyContinue))
@@ -95,7 +113,7 @@ if(!(Get-Module MSOnline)){Install-Module -Name MSOnline -Confirm:$false -Force
     }
     Get-MsolDomainVerificationDns -DomainName $domain -Mode DnsTxTRecord
     }
-    $domain = $DOMAINNAME.$DOMAINSUFFIX
+   
     $dom = Create-Domain $domain
     
     # Retrieve Verification record from domain creation
@@ -110,19 +128,57 @@ if(!(Get-Module MSOnline)){Install-Module -Name MSOnline -Confirm:$false -Force
         MSVERIFICATION = $MSVERIFICATION
         DEFAULTTENANTSUBDOMAIN = $DEFAULTTENANTSUBDOMAIN
     }
-    
+    Run-ScriptWithParams "..\Gen-Main.ps1" $ParamsMain
 
-    Run-ScriptWithParams ".\Gen-Main.ps1" $ParamsMain
+    $ParamsProviders = @{
 
-    terraform init
-    terraform plan
-    terraform apply
+        VAULTNAME = $VAULTNAME
+        VAULTGROUP = $VAULTGROUP
+    }
+    Run-ScriptWithParams "..\Gen-Providers.ps1" $ParamsProviders
+
+    if ($s3enabled){
+        $AWS_ACCESS_KEY_ID = Read-Host "Enter DigitalOcean S3 Key ID" -AsSecureString
+        
+        $AWS_SECRET_ACCESS_KEY = Read-Host "Enter DigitalOcean S3 Secret Access Key" -AsSecureString
+        
+        # Convert SecureString to Plain Text (for temporary use)
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AWS_ACCESS_KEY_ID)
+        $PlainAWS_ACCESS_KEY_ID = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($AWS_SECRET_ACCESS_KEY)
+        $PlainAWS_SECRET_ACCESS_KEY = [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+        
+        # Configure AWS CLI
+        aws configure set aws_access_key_id $PlainAWS_ACCESS_KEY_ID --profile digitalocean
+        aws configure set aws_secret_access_key $PlainAWS_SECRET_ACCESS_KEY --profile digitalocean
+        aws configure set default.region us-east-1 --profile digitalocean
+        
+        $env:AWS_PROFILE="digitalocean"
+        # export AWS_PROFILE=digitalocean
+        
+        # Initialize and copy tf to backend
+        # terraform init -migrate-state
+        # terraform init -reconfigure
+        terraform init -force-copy
+        terraform plan
+        terraform apply
+        }
+        else {
+            terraform init -reconfigure
+            terraform plan
+            terraform apply
+        }
+        
     
     # Enable DKIM for the tenant
-    Read-Host "Verify terraform applied your records. Press any key to continue."
+    Read-Host "Verify your domain in the AzureAd portal > custom domains > domain > 'Verify', otherwise it may take a bit before you can perform DKIM validation. Press any key to continue."
     
-    Write-Output "Enabling DKIM."
+    Read-Host "Ready for DKIM?! I'm excited for you. Any key for yes, ctrl+c to cancel."
+    Write-Output "Creating a new DKIM signing configuration for $domain."
     New-DkimSigningConfig -DomainName $domain -Enabled $true
+
+    Write-Output "Turning on DKIM signing for $domain"
     Set-DkimSigningConfig -Identity $domain -Enabled $true
 
 

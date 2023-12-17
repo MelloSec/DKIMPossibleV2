@@ -32,7 +32,7 @@ variable "onmicrosoft_domain" {
 }
 
 resource "namecheap_domain_records" "example" {
-  domain = "${var.domain.fqdn}"
+  domain = "${var.domain_fqdn}"
   mode = "merge"
   email_type = "MX"
 

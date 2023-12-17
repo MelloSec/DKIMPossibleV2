@@ -3,20 +3,20 @@ param(
     [string]$VAULTNAME,
 
     [Parameter(ValueFromPipelineByPropertyName = $true)]
-    [string]$VAULTGROUP,
+    [string]$VAULTGROUP
 
-    [Parameter(ValueFromPipelineByPropertyName = $true)]
-    [string]$BUCKETREGION
+    # [Parameter(ValueFromPipelineByPropertyName = $true)]
+    # [string]$BUCKETREGION
 )
 
 # Check and create .\Deploy directory if it doesn't exist
-$deployPath = ".\Deploy"
+$deployPath = "..\Deploy"
 if (-not (Test-Path -Path $deployPath)) {
     New-Item -ItemType Directory -Path $deployPath
 }
 
 # Copy providers.tf template to .\Deploy
-$templatePath = ".\templates\providers.tf"
+$templatePath = "..\templates\providers.tf"
 $deployFilePath = Join-Path $deployPath "providers.tf"
 Copy-Item -Path $templatePath -Destination $deployFilePath -Force
 
@@ -29,7 +29,7 @@ function Replace-PlaceholderInFile {
 # Replace placeholders with parameter values
 if ($VAULTNAME) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "VAULTNAME" -value $VAULTNAME }
 if ($VAULTGROUP) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "VAULTGROUP" -value $VAULTGROUP }
-if ($BUCKETREGION) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "BUCKETREGION" -value $BUCKETREGION }
+# if ($BUCKETREGION) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "BUCKETREGION" -value $BUCKETREGION }
 
 
 # Pipeline USage
