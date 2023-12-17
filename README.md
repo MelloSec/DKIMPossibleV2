@@ -1,5 +1,4 @@
 # DKIMPossibleV2
-
 Proof-of-Concept tool that onboards your Namecheap domain to Office 365 using MSOL and EXO modules, then spins up the required mail security records to get you up to cruising speed. 
 
 Deploy script creates your deployment from templates folder, replaces values and kicks off powershell and terraform.
@@ -10,9 +9,9 @@ State is stored in a DigitalOcean S3 backend. Script will ask your your keys whe
 
 
 ## Usage
-I made this as easy as possible because of my own shortcomings. This is what it takes, this is waht it expects. Modify this as you see fit, the values will be passed from the Deploy script to the Gen-Whatever scripts to create the templates. Runs from .\Deploy\
+I made this as easy as possible because of my own shortcomings. This is what it takes, this is waht it expects. Modify this as you see fit, the values will be passed from the Deploy script to the Gen-Whatever scripts to create the templates. Runs from .\Deploy\, which is deleted and recreated each run.
 
-### Generate a new Key Vault, use an S3 backend 
+### Generate a new Key Vault, use an S3 backend to onboard a domain, onboard your domain and verify
 ```powershell
 $params = @{
 
