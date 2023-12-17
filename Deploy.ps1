@@ -165,6 +165,12 @@ if ($userChoice -eq "y" -or $userChoice -eq "Y") {
         terraform apply
         }
         else {
+
+            $env:AWS_ACCESS_KEY_ID = $null
+            $env:AWS_SECRET_ACCESS_KEY = $null
+            $env:AWS_SESSION_TOKEN = $null
+            
+
             terraform init -reconfigure
             terraform plan
             terraform apply
