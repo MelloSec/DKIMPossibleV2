@@ -9,12 +9,11 @@ State is stored in a DigitalOcean S3 backend. Script will ask your your keys whe
 
 
 ## Usage
-I made this as easy as possible because of my own shortcomings. This is what it takes, this is waht it expects. Modify this as you see fit, the values will be passed from the Deploy script to the Gen-Whatever scripts to create the templates. Runs from .\Deploy\, which is deleted and recreated each run.
+I made this as easy as possible because of my own shortcomings. This is what it takes, this is what it expects. Modify this as you see fit, the values will be passed from the Deploy script to the Gen-Whatever scripts to create the templates. Runs from .\Deploy\, which is deleted and recreated each run.
 
 ### Generate a new Key Vault, use an S3 backend to onboard a domain, onboard your domain and verify
 ```powershell
 $params = @{
-
     s3enabled = $true # only supported way right now
     genKeyVault = $true
     BUCKET = "mrbucket"
