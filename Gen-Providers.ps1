@@ -29,7 +29,7 @@ function Replace-PlaceholderInFile {
 # Replace placeholders with parameter values
 if ($VAULTNAME) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "VAULTNAME" -value $VAULTNAME }
 if ($VAULTGROUP) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "VAULTGROUP" -value $VAULTGROUP }
-# if ($BUCKETREGION) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "BUCKETREGION" -value $BUCKETREGION }
+if ($BUCKETREGION) { Replace-PlaceholderInFile -filePath $deployFilePath -placeholder "BUCKETREGION" -value $BUCKETREGION }
 
 
 # Pipeline USage
