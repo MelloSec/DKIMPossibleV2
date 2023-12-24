@@ -9,7 +9,7 @@ State is stored in a DigitalOcean S3 backend. Script will ask your your keys whe
 
 
 ## Usage
-I made this as easy as possible because of my own shortcomings. This is what it takes, this is what it expects. Modify this as you see fit, the values will be passed from the Deploy script to the Gen-Whatever scripts to create the templates. Runs from .\Deploy\, which is deleted and recreated each run.
+Easiest way is to wrap your params in a hash table and splat. This is what it takes, this is what it expects. Modify this as you see fit, the values will be passed from the Deploy script to the Gen-Whatever sub-scripts to create the templates. Runs from .\Deploy\, which is deleted and recreated each run.
 
 ### Generate a new Key Vault, use an S3 backend, onboard your domain and verify
 ```powershell
